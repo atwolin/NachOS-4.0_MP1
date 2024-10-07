@@ -44,69 +44,85 @@
 typedef int OpenFileId;
 
 class FileSystem {
-   public:
-    FileSystem() {
-        for (int i = 0; i < 20; i++) OpenFileTable[i] = NULL;
+ public:
+  FileSystem() {
+    for (int i = 0; i < 20; i++) OpenFileTable[i] = NULL;
+  }
+
+  bool Create(char *name) {
+    int fileDescriptor = OpenForWrite(name);
+
+    if (fileDescriptor == -1) return FALSE;
+    Close(fileDescriptor);
+    return TRUE;
+  }
+  // The OpenFile function is used for open user program [userprog/addrspace.cc]
+  OpenFile *Open(char *name) {
+    int fileDescriptor = OpenForReadWrite(name, FALSE);
+    if (fileDescriptor == -1) return NULL;
+    return new OpenFile(fileDescriptor);
+  }
+
+  //  The OpenAFile function is used for kernel open system call
+  OpenFileId OpenAFile(char *name) {
+    DEBUG(dbgTraCode, "In FileSystem::OpenAFile().");
+    int fileDescriptor = OpenForReadWrite(name, FALSE);
+    if (fileDescriptor == -1) return -1;
+    int len = sizeof(OpenFileTable);
+    for (int idx = 0; idx < len; ++idx) {
+      if (OpenFileTable[idx] == NULL) {
+        OpenFileTable[idx] = new OpenFile(fileDescriptor);
+        DEBUG(dbgTraCode,
+              "Created a new OpenFile and stored into OpenFileTable");
+        return idx;
+      }
     }
+    return -1;
+  }
 
-    bool Create(char *name) {
-        int fileDescriptor = OpenForWrite(name);
+  int WriteFile(char *buffer, int size, OpenFileId id) {
+    DEBUG(dbgTraCode, "HI!! ");
+    DEBUG(dbgTraCode, "In FileSystem::WriteFile().");
+    DEBUG(dbgTraCode, "HELLO!! ");
+    DEBUG(dbgTraCode, "OpenFileTable[id]->file: ", OpenFileTable[id]->file);
+    return OpenFileTable[id]->Write(buffer, size * sizeof(char));
+  }
+  /*
+  int ReadFile(char *buffer, int size, OpenFileId id) {}
+  int CloseFile(OpenFileId id) {}
+  */
 
-        if (fileDescriptor == -1)
-            return FALSE;
-        Close(fileDescriptor);
-        return TRUE;
-    }
-    // The OpenFile function is used for open user program  [userprog/addrspace.cc]
-    OpenFile *Open(char *name) {
-        int fileDescriptor = OpenForReadWrite(name, FALSE);
-        if (fileDescriptor == -1)
-            return NULL;
-        return new OpenFile(fileDescriptor);
-    }
+  bool Remove(char *name) { return Unlink(name) == 0; }
 
-    //  The OpenAFile function is used for kernel open system call
-    /*  OpenFileId OpenAFile(char *name) {
-        }
-        int WriteFile(char *buffer, int size, OpenFileId id){
-        }
-        int ReadFile(char *buffer, int size, OpenFileId id){
-        }
-        int CloseFile(OpenFileId id){
-        }
-    */
-
-    bool Remove(char *name) { return Unlink(name) == 0; }
-
-    OpenFile *OpenFileTable[20];
+  OpenFile *OpenFileTable[20];
 };
 
 #else  // FILESYS
 class FileSystem {
-   public:
-    FileSystem(bool format);  // Initialize the file system.
-                              // Must be called *after* "synchDisk"
-                              // has been initialized.
-                              // If "format", there is nothing on
-                              // the disk, so initialize the directory
-                              // and the bitmap of free blocks.
+ public:
+  FileSystem(bool format);  // Initialize the file system.
+                            // Must be called *after* "synchDisk"
+                            // has been initialized.
+                            // If "format", there is nothing on
+                            // the disk, so initialize the directory
+                            // and the bitmap of free blocks.
 
-    bool Create(char *name, int initialSize);
-    // Create a file (UNIX creat)
+  bool Create(char *name, int initialSize);
+  // Create a file (UNIX creat)
 
-    OpenFile *Open(char *name);  // Open a file (UNIX open)
+  OpenFile *Open(char *name);  // Open a file (UNIX open)
 
-    bool Remove(char *name);  // Delete a file (UNIX unlink)
+  bool Remove(char *name);  // Delete a file (UNIX unlink)
 
-    void List();  // List all the files in the file system
+  void List();  // List all the files in the file system
 
-    void Print();  // List all the files and their contents
+  void Print();  // List all the files and their contents
 
-   private:
-    OpenFile *freeMapFile;    // Bit map of free disk blocks,
-                              // represented as a file
-    OpenFile *directoryFile;  // "Root" directory -- list of
-                              // file names, represented as a file
+ private:
+  OpenFile *freeMapFile;    // Bit map of free disk blocks,
+                            // represented as a file
+  OpenFile *directoryFile;  // "Root" directory -- list of
+                            // file names, represented as a file
 };
 
 #endif  // FILESYS

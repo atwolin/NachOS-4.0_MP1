@@ -41,7 +41,6 @@ __start:
  * 	convention on the MIPS.
  * -------------------------------------------------------------
  */
-
 	.globl Open
 	.ent	Open
 Open:
