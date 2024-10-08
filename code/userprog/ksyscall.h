@@ -38,6 +38,8 @@ int SysCreate(char *filename) {
 OpenFileId SysOpen(char *name) { return kernel->fileSystem->OpenAFile(name); }
 
 int SysWrite(char *name, int size, OpenFileId id) {
+  DEBUG(dbgTraCode,
+        "In ksyscall::SysWrite(), name: " << name << ", size: " << size);
   return kernel->fileSystem->WriteFile(name, size, id);
 }
 

@@ -21,6 +21,7 @@
 #define OPENFILE_H
 
 #include "copyright.h"
+#include "debug.h"  //just for test!!!
 #include "sysdep.h"
 #include "utility.h"
 
@@ -40,8 +41,11 @@ class OpenFile {
     return ReadPartial(file, into, numBytes);
   }
   int WriteAt(char *from, int numBytes, int position) {
+    DEBUG(dbgTraCode, "In OpenFile::Write()");
     Lseek(file, position, 0);
+    DEBUG(dbgTraCode, "In OpenFile::Write(), finish Lseek()");
     WriteFile(file, from, numBytes);
+    DEBUG(dbgTraCode, "In OpenFile::Write(), finish WriteFile()");
     return numBytes;
   }
   int Read(char *into, int numBytes) {
@@ -50,7 +54,9 @@ class OpenFile {
     return numRead;
   }
   int Write(char *from, int numBytes) {
-    DEBUG(dbgTraCode, "In OpenFile::Write().");
+    DEBUG(dbgTraCode,
+          "In OpenFile::Write(), from: " << from << ", numBytes: " << numBytes);
+    DEBUG(dbgTraCode, "In OpenFile::Write(), into WriteAt()");
     int numWritten = WriteAt(from, numBytes, currentOffset);
     currentOffset += numWritten;
     return numWritten;

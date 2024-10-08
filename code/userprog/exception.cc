@@ -140,15 +140,15 @@ void ExceptionHandler(ExceptionType which) {
           DEBUG(dbgTraCode, "In ExceptionHandler:case SC_Write.");
           val = kernel->machine->ReadRegister(4);
           {
-            char *filename = &(kernel->machine->mainMemory[val]);
-            val = kernel->machine->ReadRegister(5);
-            numChar = kernel->machine->mainMemory[val];
-            val = kernel->machine->ReadRegister(6);
-            fileID = kernel->machine->mainMemory[val];
+            char *buffer = &(kernel->machine->mainMemory[val]);
+            numChar = kernel->machine->ReadRegister(5);
+            DEBUG(dbgTraCode,
+                  "In ExceptionHandler:case SC_Write, val: " << val);
+            fileID = kernel->machine->ReadRegister(6);
 
             DEBUG(dbgTraCode,
                   "In ExceptionHandler:case SC_Write, into SysWrite()");
-            numChar = SysWrite(filename, numChar, fileID);  // Retrieve file ID.
+            numChar = SysWrite(buffer, numChar, fileID);  // Retrieve file ID.
             DEBUG(dbgTraCode,
                   "In ExceptionHandler:case SC_Write, return from SysWrite()");
             kernel->machine->WriteRegister(2, numChar);

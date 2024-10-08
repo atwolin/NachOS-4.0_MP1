@@ -81,10 +81,9 @@ class FileSystem {
   }
 
   int WriteFile(char *buffer, int size, OpenFileId id) {
-    DEBUG(dbgTraCode, "HI!! ");
-    DEBUG(dbgTraCode, "In FileSystem::WriteFile().");
-    DEBUG(dbgTraCode, "HELLO!! ");
-    DEBUG(dbgTraCode, "OpenFileTable[id]->file: ", OpenFileTable[id]->file);
+    DEBUG(dbgTraCode, "In FileSystem::WriteFile(), buffer: "
+                          << buffer << ", size: " << size);
+    DEBUG(dbgTraCode, "OpenFileTable[id]->file: ");
     return OpenFileTable[id]->Write(buffer, size * sizeof(char));
   }
   /*

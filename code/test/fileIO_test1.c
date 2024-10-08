@@ -10,16 +10,16 @@ int main(void) {
 
   if (fid < 0) MSG("Failed on opening file");
 
-  // for (i = 0; i < 13; ++i) {
-  //   int count = Write(test + 2, 2, fid);
+  for (i = 0; i < 13; ++i) {
+    int count = Write(test + 2, 2, fid);
+    if (count != 2) MSG("Failed on writing file");
+    PrintInt(count);
+  }
+  // for (i = 0; i < 26; ++i) {
+  //   int count = Write(test + i, 1, fid);
   //   if (count != 1) MSG("Failed on writing file");
   //   PrintInt(count);
   // }
-  for (i = 0; i < 26; ++i) {
-    int count = Write(test + i, 1, fid);
-    if (count != 1) MSG("Failed on writing file");
-    PrintInt(count);
-  }
   // success = Close(fid);
   // if (success != 1)
   //     MSG("Failed on closing file");
