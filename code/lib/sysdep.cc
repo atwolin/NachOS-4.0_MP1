@@ -114,9 +114,7 @@ int sendto(int, const void *, int, int, void *, int);
 //	hitting ctl-C.
 //----------------------------------------------------------------------
 
-void CallOnUserAbort(void (*func)(int)) {
-    (void)signal(SIGINT, func);
-}
+void CallOnUserAbort(void (*func)(int)) { (void)signal(SIGINT, func); }
 
 //----------------------------------------------------------------------
 // Delay
@@ -125,9 +123,7 @@ void CallOnUserAbort(void (*func)(int)) {
 //	in a different UNIX shell.
 //----------------------------------------------------------------------
 
-void Delay(int seconds) {
-    (void)sleep((unsigned)seconds);
-}
+void Delay(int seconds) { (void)sleep((unsigned)seconds); }
 
 //----------------------------------------------------------------------
 // UDelay
@@ -148,18 +144,14 @@ void UDelay(unsigned int useconds) {
 // 	Quit and drop core.
 //----------------------------------------------------------------------
 
-void Abort() {
-    abort();
-}
+void Abort() { abort(); }
 
 //----------------------------------------------------------------------
 // Exit
 // 	Quit without dropping core.
 //----------------------------------------------------------------------
 
-void Exit(int exitCode) {
-    exit(exitCode);
-}
+void Exit(int exitCode) { exit(exitCode); }
 
 //----------------------------------------------------------------------
 // RandomInit
@@ -167,19 +159,14 @@ void Exit(int exitCode) {
 //	now obsolete "srand" and "rand" because they are more portable!
 //----------------------------------------------------------------------
 
-void RandomInit(unsigned seed) {
-    srand(seed);
-}
+void RandomInit(unsigned seed) { srand(seed); }
 
 //----------------------------------------------------------------------
 // RandomNumber
 // 	Return a pseudo-random number.
 //----------------------------------------------------------------------
 
-unsigned int
-RandomNumber() {
-    return rand();
-}
+unsigned int RandomNumber() { return rand(); }
 
 //----------------------------------------------------------------------
 // AllocBoundedArray
@@ -193,8 +180,7 @@ RandomNumber() {
 //	"size" -- amount of useful space needed (in bytes)
 //----------------------------------------------------------------------
 
-char *
-AllocBoundedArray(int size) {
+char *AllocBoundedArray(int size) {
 #ifdef NO_MPROT
     return new char[size];
 #else
@@ -216,9 +202,7 @@ AllocBoundedArray(int size) {
 //----------------------------------------------------------------------
 
 #ifdef NO_MPROT
-void DeallocBoundedArray(char *ptr, int /* size */) {
-    delete[] ptr;
-}
+void DeallocBoundedArray(char *ptr, int /* size */) { delete[] ptr; }
 #else
 void DeallocBoundedArray(char *ptr, int size) {
     int pgSize = getpagesize();
@@ -262,7 +246,8 @@ bool PollFile(int fd) {
 
 // poll file or socket
 #if defined(BSD)
-    retVal = select(32, (fd_set *)&rfd, (fd_set *)&wfd, (fd_set *)&xfd, &pollTime);
+    retVal =
+        select(32, (fd_set *)&rfd, (fd_set *)&wfd, (fd_set *)&xfd, &pollTime);
 #elif defined(SOLARIS) || defined(LINUX)
     // KMS
     retVal = select(32, &rfd, &wfd, &xfd, &pollTime);
@@ -271,8 +256,7 @@ bool PollFile(int fd) {
 #endif
 
     ASSERT((retVal == 0) || (retVal == 1));
-    if (retVal == 0)
-        return FALSE;  // no char waiting to be read
+    if (retVal == 0) return FALSE;  // no char waiting to be read
     return TRUE;
 }
 
@@ -354,8 +338,8 @@ void Lseek(int fd, int offset, int whence) {
 
 int Tell(int fd) {
 #if defined(BSD) || defined(SOLARIS) || defined(LINUX)
-    return lseek(fd, 0, SEEK_CUR);  // 386BSD doesn't have the tell() system call
-                                    // neither do Solaris and Linux  -KMS
+    return lseek(fd, 0, SEEK_CUR);  // 386BSD doesn't have the tell() system
+                                    // call neither do Solaris and Linux  -KMS
 #else
     return tell(fd);
 #endif
@@ -377,9 +361,7 @@ int Close(int fd) {
 // 	Delete a file.
 //----------------------------------------------------------------------
 
-bool Unlink(char *name) {
-    return unlink(name);
-}
+bool Unlink(char *name) { return unlink(name); }
 
 //----------------------------------------------------------------------
 // OpenSocket
@@ -402,17 +384,14 @@ int OpenSocket() {
 // 	Close the IPC connection.
 //----------------------------------------------------------------------
 
-void CloseSocket(int sockID) {
-    (void)close(sockID);
-}
+void CloseSocket(int sockID) { (void)close(sockID); }
 
 //----------------------------------------------------------------------
 // InitSocketName
 // 	Initialize a UNIX socket address -- magical!
 //----------------------------------------------------------------------
 
-static void
-InitSocketName(struct sockaddr_un *uname, char *name) {
+static void InitSocketName(struct sockaddr_un *uname, char *name) {
     uname->sun_family = AF_UNIX;
     strcpy(uname->sun_path, name);
 }
@@ -439,9 +418,7 @@ void AssignNameToSocket(char *socketName, int sockID) {
 // DeAssignNameToSocket
 // 	Delete the UNIX file name we assigned to our IPC port, on cleanup.
 //----------------------------------------------------------------------
-void DeAssignNameToSocket(char *socketName) {
-    (void)unlink(socketName);
-}
+void DeAssignNameToSocket(char *socketName) { (void)unlink(socketName); }
 
 //----------------------------------------------------------------------
 // PollSocket
@@ -465,8 +442,8 @@ void ReadFromSocket(int sockID, char *buffer, int packetSize) {
     int size = sizeof(uName);
 #endif
 
-    retVal = recvfrom(sockID, buffer, packetSize, 0,
-                      (struct sockaddr *)&uName, &size);
+    retVal = recvfrom(sockID, buffer, packetSize, 0, (struct sockaddr *)&uName,
+                      &size);
 
     if (retVal != packetSize) {
         perror("in recvfrom");
@@ -501,8 +478,7 @@ void SendToSocket(int sockID, char *buffer, int packetSize, char *toName) {
     for (retryCount = 0; retryCount < 10; retryCount++) {
         retVal = sendto(sockID, buffer, packetSize, 0,
                         (struct sockaddr *)&uName, sizeof(uName));
-        if (retVal == packetSize)
-            return;
+        if (retVal == packetSize) return;
         // if we did not succeed, we should see a negative
         // return value indicating complete failure.  If we
         // don't, something fishy is going on...
