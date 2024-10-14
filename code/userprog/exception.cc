@@ -114,14 +114,18 @@ void ExceptionHandler(ExceptionType which) {
                     break;
 
                 case SC_Open:
-                    // #define SC_Open 6
+                    /*
+                    #define SC_Open 6
+                    Open a file for read & write.
+                    */
                     DEBUG(dbgTraCode, "In ExceptionHandler:case SC_Open.");
-                    val = kernel->machine->ReadRegister(
-                        4);  // Retrieve file name address.
+                    val = kernel->machine->ReadRegister(4);  // Retrieve file name address.
                     {
-                        char *filename = &(kernel->machine->mainMemory[val]);
-                        fileID = SysOpen(filename);  // Retrieve file ID.
-                        kernel->machine->WriteRegister(2, fileID);
+                        char *filename = &(kernel->machine->mainMemory[val]); // Retrive file name.
+                        DEBUG(dbgTraCode, "In ExceptionHandler:case SC_Open, into SysOpen.");
+                        fileID = SysOpen(filename);  // Success: get file ID / Fail: get -1
+                        DEBUG(dbgTraCode, "In ExceptionHandler:case SC_Open, return from SysOpen.");
+                        kernel->machine->WriteRegister(2, fileID); // Write file ID into register.
                     }
                     kernel->machine->WriteRegister(
                         PrevPCReg, kernel->machine->ReadRegister(PCReg));
@@ -144,20 +148,12 @@ void ExceptionHandler(ExceptionType which) {
                     {
                         char *buffer = &(kernel->machine->mainMemory[val]);
                         numChar = kernel->machine->ReadRegister(5);
-                        DEBUG(
-                            dbgTraCode,
-                            "In ExceptionHandler:case SC_Write, val: " << val);
                         fileID = kernel->machine->ReadRegister(6);
 
-                        DEBUG(dbgTraCode,
-                              "In ExceptionHandler:case SC_Write, into "
-                              "SysWrite()");
-                        numChar = SysWrite(buffer, numChar,
-                                           fileID);  // Retrieve file ID.
-                        DEBUG(dbgTraCode,
-                              "In ExceptionHandler:case SC_Write, return from "
-                              "SysWrite()");
-                        kernel->machine->WriteRegister(2, numChar);
+                        DEBUG(dbgTraCode, "In ExceptionHandler:case SC_Write, into SysWrite()");
+                        numChar = SysWrite(buffer, numChar, fileID); // Success: get number of character written into the file / Fail: get -1
+                        DEBUG(dbgTraCode, "In ExceptionHandler:case SC_Write, return from SysWrite()");
+                        kernel->machine->WriteRegister(2, numChar); // Write result into register.
                     }
                     kernel->machine->WriteRegister(
                         PrevPCReg, kernel->machine->ReadRegister(PCReg));
@@ -170,23 +166,21 @@ void ExceptionHandler(ExceptionType which) {
                     break;
 
                 case SC_Read:
-                    // #define SC_Read 7
+                    /*
+                    #define SC_Read 7
+                    Read “size” characters from the file into the buffer, and
+                    return the number of characters actually read from the file
+                    */
+                   DEBUG(dbgTraCode, "In ExceptionHandler:case SC_Read.");
                     val = kernel->machine->ReadRegister(4);
                     {
                         char *buffer = &(kernel->machine->mainMemory[val]);
                         numChar = kernel->machine->ReadRegister(5);
-                        DEBUG(dbgTraCode,
-                              "In ExceptionHandler:case SC_Read, val: " << val);
                         fileID = kernel->machine->ReadRegister(6);
 
-                        DEBUG(dbgTraCode,
-                              "In ExceptionHandler:case SC_Read, into "
-                              "SysRaed()");
-                        numChar = SysRaed(buffer, numChar,
-                                          fileID);  // Retrieve file ID.
-                        DEBUG(dbgTraCode,
-                              "In ExceptionHandler:case SC_Read, return from "
-                              "SysRead()");
+                        DEBUG(dbgTraCode, "In ExceptionHandler:case SC_Read, into SysRaed()");
+                        numChar = SysRaed(buffer, numChar, fileID);
+                        DEBUG(dbgTraCode, "In ExceptionHandler:case SC_Read, return from SysRead()");
                         kernel->machine->WriteRegister(2, numChar);
                     }
                     kernel->machine->WriteRegister(
@@ -200,15 +194,15 @@ void ExceptionHandler(ExceptionType which) {
                     break;
 
                 case SC_Close:
-                    // #define SC_Close 10
+                    /*
+                    #define SC_Close 10
+                    Close the file.
+                    */
+                    DEBUG(dbgTraCode, "In ExceptionHandler:case SC_Close.");
                     val = kernel->machine->ReadRegister(4);
-                    DEBUG(dbgTraCode,
-                              "In ExceptionHandler:case SC_Close, into "
-                              "SysClose() with val = " << val);
-                    status = SysClose(val); 
-                    DEBUG(dbgTraCode,
-                              "In ExceptionHandler:case SC_Close, return from "
-                              "SysClose()");
+                    DEBUG(dbgTraCode, "In ExceptionHandler:case SC_Close, into SysClose()");
+                    status = SysClose(val);
+                    DEBUG(dbgTraCode, "In ExceptionHandler:case SC_Close, return from SysClose()");
                     kernel->machine->WriteRegister(2, status);
                     kernel->machine->WriteRegister(
                         PrevPCReg, kernel->machine->ReadRegister(PCReg));

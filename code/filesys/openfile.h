@@ -34,7 +34,10 @@ class OpenFile {
         file = f;
         currentOffset = 0;
     }  // open the file
-    ~OpenFile() { Close(file); }  // close the file
+    ~OpenFile() {
+        int retval = Close(file);
+        DEBUG(dbgTraCode, "In OpenFile::destructor with close return value: " << retval);
+    }  // close the file
 
     int ReadAt(char *into, int numBytes, int position) {
         Lseek(file, position, 0);

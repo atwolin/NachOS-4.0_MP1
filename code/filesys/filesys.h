@@ -33,6 +33,8 @@
 #ifndef FS_H
 #define FS_H
 
+#include <string.h>
+
 #include "copyright.h"
 #include "debug.h"  //just for test!!!
 #include "openfile.h"
@@ -46,7 +48,10 @@ typedef int OpenFileId;
 class FileSystem {
    public:
     FileSystem() {
-        for (int i = 0; i < 20; i++) OpenFileTable[i] = NULL;
+        for (int i = 0; i < 20; i++) {
+            OpenFileTable[i] = NULL;
+            OpenFileNames[i] = NULL;
+        }
     }
 
     bool Create(char *name) {
@@ -66,59 +71,108 @@ class FileSystem {
 
     //  The OpenAFile function is used for kernel open system call
     OpenFileId OpenAFile(char *name) {
-        DEBUG(dbgTraCode, "In FileSystem::OpenAFile().");
-        int fileDescriptor = OpenForReadWrite(name, FALSE);
-        if (fileDescriptor == -1) return -1;  // non-existent file
-        for (int idx = 0; idx < sizeof(OpenFileTable); ++idx) {
+        DEBUG(dbgTraCode, "In FileSystem::OpenAFile(), file name = " << name);
+        // Handling duplicate file opening
+        for (int idx = 0; idx < 20; ++idx) {
+            if ((OpenFileNames[idx] != NULL) &&
+                !strcmp(OpenFileNames[idx], name)) {
+                DEBUG(dbgTraCode,
+                      "In FileSystem::OpenAFile(), duplicate opening is found: " << OpenFileNames[idx]);
+                return -1;
+            }
+        }
+        // Searching an empty spot to place the opened file control object ptr &
+        // to record file name
+        for (int idx = 0; idx < 20; ++idx) {
             if (OpenFileTable[idx] == NULL) {
+                // Get file fd
+                int fileDescriptor = OpenForReadWrite(name, FALSE);
+                DEBUG(dbgTraCode, "In FileSystem::OpenAFile(), file descriptor(fd): " << fileDescriptor);
+                // Handing non-existent file
+                if (fileDescriptor == -1) return -1;
+
                 OpenFileTable[idx] = new OpenFile(fileDescriptor);
                 DEBUG(dbgTraCode,
                       "Created a new OpenFile and stored into OpenFileTable");
+                OpenFileNames[idx] = name;
+                DEBUG(dbgTraCode,
+                      "Created a new OpenFile and stored its name into "
+                      "OpenFileNames");
                 return idx;
             }
         }
-        return -1;  // exceeding the opened file limit (at most 20 files)
+        // Handling exceeded file opening (at most 20 files)
+        return -1;
     }
 
+        // // Get file fd
+        // int fileDescriptor = OpenForReadWrite(name, FALSE);
+        // DEBUG(dbgTraCode, "In FileSystem::OpenAFile(), file descriptor(fd): " << fileDescriptor);
+
+        // // Handing non-existent file ??????exceed 20 return -1????????
+        // if (fileDescriptor == -1) return -1;
+
+        // // Searching an empty spot to place the opened file control object ptr &
+        // // to record file name
+        // for (int idx = 0; idx < 20; ++idx) {
+        //     if (OpenFileTable[idx] == NULL) {
+        //         OpenFileTable[idx] = new OpenFile(fileDescriptor);
+        //         DEBUG(dbgTraCode,
+        //               "Created a new OpenFile and stored into OpenFileTable");
+        //         OpenFileNames[idx] = name;
+        //         DEBUG(dbgTraCode,
+        //               "Created a new OpenFile and stored its name into "
+        //               "OpenFileNames");
+        //         return idx;
+        //     }
+        // }
+
+
     int WriteFile(char *buffer, int size, OpenFileId id) {
-        DEBUG(dbgTraCode, "In FileSystem::WriteFile(), buffer: "
-                              << buffer << ", size: " << size);
-        DEBUG(dbgTraCode, "OpenFileTable[id]->file: ");
+        DEBUG(dbgTraCode, "In FileSystem::WriteFile()");
+
+        if (id < 0 || id >= 20) {  // Handling invalid file ID
+            return -1;
+        } else {
+            if (OpenFileTable[id] == NULL) {  // Handling file not yet opened
+                return -1;
+            }
+        }
         return OpenFileTable[id]->Write(buffer, size * sizeof(char));
-    }////todo: check whether a file is opened or not. / id < 0 or id >= 20 / size > buffer length
+    }
 
     int ReadFile(char *buffer, int size, OpenFileId id) {
-        DEBUG(dbgTraCode, "In FileSystem::RaedFile(), buffer: "
-                              << buffer << ", size: " << size);
+        DEBUG(dbgTraCode, "In FileSystem::RaedFile()");
+        if (id < 0 || id >= 20) {  // Handling invalid file ID
+            return -1;
+        } else {
+            if (OpenFileTable[id] == NULL) {  // Handling file not yet opened
+                return -1;
+            }
+        }
         return OpenFileTable[id]->Read(buffer, size * sizeof(char));
-    }////todo: check whether a file is opened or not. / id < 0 or id >= 20 / size > file content length
+    }
 
     int CloseFile(OpenFileId id) {
-        // DEBUG(dbgTraCode,
-        //       "In FileSystem::CloseFile(), before deletion, OpenFileTable[id]
-        //       "
-        //       "== nullptr? "
-        //           << (OpenFileTable[id] == nullptr));
-        // delete OpenFileTable[id];
-        // DEBUG(dbgTraCode,
-        //       "In FileSystem::CloseFile(), after deletion, OpenFileTable[id]
-        //       "
-        //       "== nullptr? "
-        //           << (OpenFileTable[id] == nullptr));
-        // DEBUG(
-        //     dbgTraCode,
-        //     "In FileSystem::CloseFile(), after deletion, success: " <<
-        //     success);
-        if (OpenFileTable[id] == NULL) {
-            return 1;
-        } else {
+        DEBUG(dbgTraCode, "In FileSystem::CloseFile()");
+        if (id < 0 || id > 20) {  // Handling invalid file ID
             return -1;
+        } else {
+            if (OpenFileTable[id] == NULL) {  // Handling file not yet opened
+                return -1;
+            }
         }
-    }////todo: check whether a file is opened or not. / id < 0 or id >= 20
+        // int retval = Close(OpenFileFD[id]);
+        delete OpenFileTable[id];
+        OpenFileTable[id] = NULL;
+        OpenFileNames[id] = NULL;
+        return 1;
+    }
 
     bool Remove(char *name) { return Unlink(name) == 0; }
 
     OpenFile *OpenFileTable[20];
+    char *OpenFileNames[20];  // store open files
 };
 
 #else  // FILESYS

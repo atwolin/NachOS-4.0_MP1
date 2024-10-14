@@ -56,9 +56,7 @@ char SynchConsoleInput::GetChar() {
 //	anyone waiting.
 //----------------------------------------------------------------------
 
-void SynchConsoleInput::CallBack() {
-    waitFor->V();
-}
+void SynchConsoleInput::CallBack() { waitFor->V(); }
 
 //----------------------------------------------------------------------
 // SynchConsoleOutput::SynchConsoleOutput
@@ -104,14 +102,22 @@ void SynchConsoleOutput::PutInt(int value) {
     sprintf(str, "%d\n\0", value);  // simply for trace code
     lock->Acquire();
     do {
-        DEBUG(dbgTraCode, "In SynchConsoleOutput::PutChar, into consoleOutput->PutChar, " << kernel->stats->totalTicks);
+        DEBUG(dbgTraCode,
+              "In SynchConsoleOutput::PutInt, into consoleOutput->PutChar, "
+                  << kernel->stats->totalTicks);
         consoleOutput->PutChar(str[idx]);
-        DEBUG(dbgTraCode, "In SynchConsoleOutput::PutChar, return from consoleOutput->PutChar, " << kernel->stats->totalTicks);
+        DEBUG(dbgTraCode,
+              "In SynchConsoleOutput::PutInt, return from "
+              "consoleOutput->PutChar, "
+                  << kernel->stats->totalTicks);
         idx++;
 
-        DEBUG(dbgTraCode, "In SynchConsoleOutput::PutChar, into waitFor->P(), " << kernel->stats->totalTicks);
+        DEBUG(dbgTraCode, "In SynchConsoleOutput::PutInt, into waitFor->P(), "
+                              << kernel->stats->totalTicks);
         waitFor->P();
-        DEBUG(dbgTraCode, "In SynchConsoleOutput::PutChar, return form  waitFor->P(), " << kernel->stats->totalTicks);
+        DEBUG(dbgTraCode,
+              "In SynchConsoleOutput::PutInt, return form  waitFor->P(), "
+                  << kernel->stats->totalTicks);
     } while (str[idx] != '\0');
     lock->Release();
 }
@@ -123,6 +129,7 @@ void SynchConsoleOutput::PutInt(int value) {
 //----------------------------------------------------------------------
 
 void SynchConsoleOutput::CallBack() {
-    DEBUG(dbgTraCode, "In SynchConsoleOutput::CallBack(), " << kernel->stats->totalTicks);
+    DEBUG(dbgTraCode,
+          "In SynchConsoleOutput::CallBack(), " << kernel->stats->totalTicks);
     waitFor->V();
 }
